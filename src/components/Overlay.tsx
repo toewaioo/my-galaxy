@@ -61,7 +61,7 @@ export default function Overlay(props: { selectedMemory?: any, onClose?: () => v
                 className="flex justify-between items-start pointer-events-auto"
             >
                 <div>
-                    <h2 className="text-white/80 text-xl font-light tracking-wider">MY LOVE</h2>
+                    <h2 className="text-white/80 text-xl font-light tracking-wider">Galaxy of Love</h2>
                 </div>
 
                 <button
@@ -72,7 +72,7 @@ export default function Overlay(props: { selectedMemory?: any, onClose?: () => v
                 </button>
             </motion.div>
 
-            {/* Footer Instructions */}
+            {/* Footer Instructions
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: started ? 1 : 0 }}
@@ -80,21 +80,21 @@ export default function Overlay(props: { selectedMemory?: any, onClose?: () => v
                 className="text-center text-white/30 text-xs tracking-[0.3em]"
             >
                 DRAG TO EXPLORE • CLICK MEMORIES
-            </motion.div>
+            </motion.div> */}
 
             {/* Capture Controls */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: started ? 1 : 0 }}
                 transition={{ delay: 2.5, duration: 1 }}
-                className="absolute bottom-8 right-8 flex flex-col gap-4 pointer-events-auto"
+                className="absolute bottom-12 right-8 flex flex-col gap-4 pointer-events-auto"
             >
 
                 <button
                     onClick={() => {
                         const canvas = document.querySelector('canvas');
                         if (canvas) {
-                            const stream = canvas.captureStream(30); // 30 FPS
+                            const stream = canvas.captureStream(60); // 30 FPS
                             const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
                             const chunks: BlobPart[] = [];
 
@@ -115,7 +115,7 @@ export default function Overlay(props: { selectedMemory?: any, onClose?: () => v
                             // Record for 5 seconds
                             setTimeout(() => {
                                 recorder.stop();
-                            }, 5000);
+                            }, 50000);
                         }
                     }}
                     className="bg-white/10 hover:bg-white/20 backdrop-blur-md p-3 rounded-full text-white/70 hover:text-white transition-all border border-white/10"

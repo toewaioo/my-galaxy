@@ -1,141 +1,135 @@
 import { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Sphere, Stars, Float, Sparkles, useTexture } from '@react-three/drei';
+import { useFrame, extend } from '@react-three/fiber';
+import { Sphere, Stars, Float, Sparkles, Ring, Torus, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
+
+// 1. Define the Fresnel Shader Material
+const FresnelMaterial = shaderMaterial(
+    {
+        uColor: new THREE.Color("#d30ac9ff"), // Core color (Black/Empty for holographic feel)
+        uFresnelColor: new THREE.Color("#f714b3ff"), // Edge glow color
+        uFresnelPower: 2.0, // How sharp the rim is
+        uIntensity: 1.5,
+    },
+    // Vertex Shader
+    `
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+    
+    void main() {
+      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+      vec4 mvPosition = viewMatrix * worldPosition;
+      gl_Position = projectionMatrix * mvPosition;
+      
+      vNormal = normalize(normalMatrix * normal);
+      vViewPosition = -mvPosition.xyz;
+    }
+    `,
+    // Fragment Shader
+    `
+    uniform vec3 uColor;
+    uniform vec3 uFresnelColor;
+    uniform float uFresnelPower;
+    uniform float uIntensity;
+    
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+    
+    void main() {
+      vec3 normal = normalize(vNormal);
+      vec3 viewDir = normalize(vViewPosition);
+      
+      // Calculate Fresnel Term
+      float fresnelTerm = dot(viewDir, normal);
+      fresnelTerm = clamp(1.0 - fresnelTerm, 0.0, 1.0);
+      fresnelTerm = pow(fresnelTerm, uFresnelPower);
+      
+      // Combine
+      vec3 finalColor = mix(uColor, uFresnelColor, fresnelTerm * uIntensity);
+      
+      // Holographic transparency: simple additive alpha based on fresnel
+      gl_FragColor = vec4(finalColor, fresnelTerm * uIntensity); 
+    }
+    `
+);
+
+// Register the material so R3F knows about it
+extend({ FresnelMaterial });
+
+// Add TypeScript support for the new element
+declare module '@react-three/fiber' {
+    interface ThreeElements {
+        fresnelMaterial: any; // Relaxed type to avoid import issues
+    }
+}
 
 export default function Planet() {
     const planetRef = useRef<THREE.Mesh>(null);
-    const atmosphereRef = useRef<THREE.Mesh>(null);
-    const glowRef = useRef<THREE.Mesh>(null);
+    const ringRef = useRef<THREE.Group>(null);
     const particlesRef = useRef<THREE.Points>(null);
 
-    // Create romantic particle system
-    const particles = useMemo(() => {
-        const count = 500;
-        const positions = new Float32Array(count * 3);
-        const colors = new Float32Array(count * 3);
+    useFrame((state) => {
+        const time = state.clock.elapsedTime;
 
-        for (let i = 0; i < count; i++) {
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos(Math.random() * 2 - 1);
-            const radius = 2 + Math.random() * 1.5;
-
-            positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-            positions[i * 3 + 1] = radius * Math.cos(phi);
-            positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
-
-            // Romantic colors (pink, purple, soft blue)
-            const color = new THREE.Color();
-            color.setHSL(
-                0.8 + Math.random() * 0.2, // Purple-pink hues
-                0.6 + Math.random() * 0.4,
-                0.6 + Math.random() * 0.4
-            );
-            colors[i * 3] = color.r;
-            colors[i * 3 + 1] = color.g;
-            colors[i * 3 + 2] = color.b;
-        }
-
-        return { positions, colors };
-    }, []);
-
-    useFrame((state, delta) => {
         if (planetRef.current) {
-            planetRef.current.rotation.y += 0.002;
-            // Gentle pulsing animation
-            planetRef.current.scale.setScalar(1 + Math.sin(state.clock.elapsedTime) * 0.02);
+            planetRef.current.rotation.y = time * 0.1;
         }
 
-        if (atmosphereRef.current) {
-            atmosphereRef.current.rotation.y -= 0.001;
-        }
-
-        if (glowRef.current) {
-            // Heartbeat Pulse Effect (Lub-Dub)
-            const t = state.clock.elapsedTime;
-            // Combine two sine waves for the heartbeat rhythm pattern
-            // Main pulse + secondary pulse
-            const pulse = Math.sin(t * 3) * 0.1 + Math.sin(t * 3 + Math.PI) * 0.05 + 1;
-            // Normalize roughly around 1.0
-
-            // Sharper beat using power
-            const heartbeat = Math.pow(Math.sin(t * 3), 4) * 0.2 + 0.9;
-
-            glowRef.current.scale.setScalar(heartbeat);
-
-            const material = glowRef.current.material as THREE.MeshBasicMaterial;
-            material.opacity = 0.3 * (heartbeat - 0.8) * 5; // Modulate opacity with beat
+        if (ringRef.current) {
+            ringRef.current.rotation.z = time * 0.05;
+            ringRef.current.rotation.x = Math.sin(time * 0.2) * 0.1;
         }
 
         if (particlesRef.current) {
-            particlesRef.current.rotation.y += 0.001;
+            particlesRef.current.rotation.y = time * 0.02;
         }
 
-        state.camera.lookAt(0, 0, 0);
+        // Pulse effects
+        const pulse = 1 + Math.sin(time * 2) * 0.02;
+        if (planetRef.current) planetRef.current.scale.setScalar(pulse);
     });
 
     return (
         <group>
-            {/* Background Stars - Reduced count for performance */}
-            <Stars
-                radius={100}
-                depth={50}
-                count={2000} // Reduced from 5000
-                factor={4}
-                saturation={0}
-                fade
-                speed={1}
-            />
+            {/* Background Stars - Dense Field */}
+            <Stars radius={300} depth={60} count={5000} factor={6} saturation={0.5} fade speed={1} />
 
-            <Float
-                speed={2}
-                rotationIntensity={0.5}
-                floatIntensity={0.5}
-                floatingRange={[-0.1, 0.1]}
-            >
-                {/* Main Planet Surface - Optimized geometry */}
-                <Sphere ref={planetRef} args={[1.3, 64, 64]}> {/* Reduced from 128 */}
-                    <meshStandardMaterial
-                        color="#ff6bcb"
-                        emissive="#ff1493"
-                        emissiveIntensity={0.8}
-                        roughness={0.4}
-                        metalness={0.3}
+            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+
+                {/* 1. HOLOGRAPHIC PLANET CORE (Fresnel) */}
+                <Sphere ref={planetRef} args={[1.5, 64, 64]}>
+                    <fresnelMaterial
+                        uColor="#ff1493" // Deep Pink Core
+                        uFresnelColor="#f30b7fff" // Pale Pink/White Rim for max contrast
+                        uFresnelPower={3.8}
+                        uIntensity={3.5} // Blinding Neon
+                        transparent
+                        blending={THREE.AdditiveBlending}
+                        depthWrite={false}
                     />
                 </Sphere>
 
-                {/* Sparkles on planet surface */}
-                <Sparkles
-                    count={50} // Reduced from 100
-                    scale={1.5}
-                    size={1.5}
-                    speed={0.4}
-                    color="#ffd700"
-                />
+                {/* 2. INNER GLOW SPHERE */}
+                <Sphere args={[1.4, 32, 32]}>
+                    <meshBasicMaterial color="#ff007f" /> {/* Bright Rose backing */}
+                </Sphere>
 
-                {/* Core Glow */}
-                <Sphere ref={glowRef} args={[1.4, 32, 32]}>
+
+
+                {/* 4. ATMOSPHERIC GLOW (Outer Halo) */}
+                <Sphere args={[1.8, 32, 32]}>
                     <meshBasicMaterial
-                        color="#ff1493" // Vibrant Deep Pink
+                        color="#ff1493" // Deep Pink Glow
                         transparent
-                        opacity={0.5}
+                        opacity={0.25}
                         blending={THREE.AdditiveBlending}
                         side={THREE.BackSide}
                     />
                 </Sphere>
 
-
+                {/* Sparkles on surface */}
+                <Sparkles count={50} scale={1.8} size={2} speed={0.4} color="#ffe6f2" />
             </Float>
-
-            {/* Distant Sparkles */}
-            <Sparkles
-                count={100} // Reduced from 200
-                scale={20}
-                size={0.8}
-                speed={0.3}
-                opacity={0.6}
-                color="#ffb6c1"
-            />
         </group>
     );
 }

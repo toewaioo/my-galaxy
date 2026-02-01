@@ -33,7 +33,7 @@ function SingleShootingStar() {
     return (
         <group>
             {active && (
-                <Trail width={4} length={6} color={new THREE.Color("#ff00cc").multiplyScalar(2)} attenuation={(t) => t}>
+                <Trail width={4} length={2} color={new THREE.Color("#ff00cc").multiplyScalar(2)} attenuation={(t) => t}>
                     <mesh ref={ref} position={startPos}>
                         <sphereGeometry args={[0.08]} />
                         <meshBasicMaterial color={new THREE.Color("red").multiplyScalar(2)} toneMapped={false} />

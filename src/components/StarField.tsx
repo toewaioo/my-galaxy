@@ -27,7 +27,7 @@ export default function StarField() {
     const ref = useRef<any>(null);
 
     const sphere = useMemo(() => {
-        return generateSpherePoints(6000, 30);
+        return generateSpherePoints(5000, 35);
     }, []);
 
     useFrame((state, delta) => {
@@ -42,8 +42,8 @@ export default function StarField() {
             <Points ref={ref} positions={sphere} stride={3} frustumCulled={false}>
                 <PointMaterial
                     transparent
-                    color="#aaaaff"
-                    size={0.03}
+                    color="#f9f9faff"
+                    size={0.06}
                     sizeAttenuation={true}
                     depthWrite={false}
                     blending={2}

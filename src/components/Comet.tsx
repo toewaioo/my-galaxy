@@ -61,8 +61,8 @@ export default function Comet({ radiusX, radiusZ, speed, startAngle, color, imag
                 <Billboard position={[0, 0.5, 0]}>
                     <Image
                         url={image}
-                        scale={hovered ? 0.6 : 0.5}
-                        opacity={hovered ? 1 : 0.8}
+                        scale={hovered ? 0.5 : 0.4}
+                        opacity={hovered ? 1 : 0.9}
                         transparent
                     />
                 </Billboard>

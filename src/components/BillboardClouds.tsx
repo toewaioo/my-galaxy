@@ -1,75 +1,98 @@
 import { useRef, useMemo } from 'react';
-import { Billboard, Instance, Instances } from '@react-three/drei';
+import { Billboard } from '@react-three/drei';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
-// Simple soft glow texture data URI to avoid external asset dependency
-const glowTexture = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAGXVTIPH2WAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAPUExURQAAAP///////////////////66wV+sAAAAFdFJOUzs7Ozs7O05mZnUAAACSSURBVFhH7dIxDsMwDATB5P7/l40qg0iCC6x4A2XpWwDufq/7k9+f/P7k9ye/P/n9ye9Pfn/y+5Pfn/z+5Pcnvz/5/cnvT35/8vuT35/8/uT3J78/+f3J709+f/L7k9+f/P7k9ye/P/n9ye9Pfn/y+5Pfn/z+5Pcnvz/5/cnvT35/8vuT35/8/uT3J78/+f3J709+f/L7k7c5H57yH+QK83cAAAAASUVORK5CYII=";
-// That was a placeholder. Let's strictly use a procedural material or a simpler approach.
-// Using a simple meshBasicMaterial with a radial gradient map created via canvas is better.
+function AtmosphericGlow({ position, color, size, opacity }: { position: [number, number, number], color: string, size: number, opacity: number }) {
 
-function CloudSprite({ position, color, size, opacity }: { position: [number, number, number], color: string, size: number, opacity: number }) {
-    // Use a simple textured plane that always faces camera via Billboard
-    // We can use the 'cloud.png' if available, but fallback to a generated texture approach if possible in a real app.
-    // For now, let's assume standard billboard behavior with a soft texture.
-
-    // Since we can't easily generate a complex texture here without canvas, we will use a circular gradient on a canvas texture.
+    // Create a very soft, diffuse gradient texture
     const texture = useMemo(() => {
         const canvas = document.createElement('canvas');
-        canvas.width = 64;
-        canvas.height = 64;
+        canvas.width = 128; // Higher res for smoother gradient
+        canvas.height = 128;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            // Radial gradient that fades out very slowly
+            const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+            // Core is brighter
             gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            // Midpoint is still quite soft
+            gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.2)');
+            // Fades to completely invisible well before the edge
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
             ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 64, 64);
+            ctx.fillRect(0, 0, 128, 128);
         }
-        const tex = new THREE.CanvasTexture(canvas);
-        return tex;
+        return new THREE.CanvasTexture(canvas);
     }, []);
 
+    const brightColor = useMemo(() => {
+        // Boost intensity for that neon "light" feel, but keep it soft
+        return new THREE.Color(color).multiplyScalar(1);
+    }, [color]);
+
     return (
-        <Billboard position={position} follow={true} lockX={false} lockY={false} lockZ={false}>
+        <Billboard position={position}>
             <mesh>
                 <planeGeometry args={[size, size]} />
                 <meshBasicMaterial
                     map={texture}
                     transparent
                     opacity={opacity}
-                    color={color}
-                    depthWrite={false}
-                    blending={THREE.AdditiveBlending}
+                    color={brightColor}
+                    depthWrite={false} // Important: prevents blocking other objects
+                    blending={THREE.AdditiveBlending} // Merges colors together like light
+                    toneMapped={false} // Keeps colors bright/neon
                 />
             </mesh>
         </Billboard>
     );
 }
 
+const clouds = [
+    // Massive, room-filling washes of color
+    // SIZES are huge (40-60) to prevent looking like "circles"
+
+    // Passionate Pink Glow
+    { position: [-10, 5, -5] as [number, number, number], color: "#FF1493", size: 45, opacity: 0.11 },
+    { position: [-15, -5, -8] as [number, number, number], color: "#FF69B4", size: 50, opacity: 0.1 },
+
+    // Dreamy Purple Haze
+    { position: [10, -5, -5] as [number, number, number], color: "#DA70D6", size: 55, opacity: 0.11 },
+    { position: [15, 2, -10] as [number, number, number], color: "#EE82EE", size: 60, opacity: 0.1 },
+
+    // Warm Ambient Light
+    { position: [0, 10, -10] as [number, number, number], color: "#FFD700", size: 60, opacity: 0.11 },
+
+    // Deep Background Atmosphere (The Void)
+    { position: [0, 0, -20] as [number, number, number], color: "#4B0082", size: 80, opacity: 0.11 },
+
+    // Green Hints
+    { position: [12, 8, -12] as [number, number, number], color: "#98FB98", size: 60, opacity: 0.1 },
+];
+
 export default function BillboardClouds() {
+    const groupRef = useRef<THREE.Group>(null);
+
+    useFrame((state, delta) => {
+        if (groupRef.current) {
+            // Slower rotation because the clouds are huge now
+            groupRef.current.rotation.y += delta * 0.05;
+        }
+    });
+
     return (
-        <group>
-            {/* Rich Gradient Atmosphere - Overlapping colors for depth */}
-
-            {/* Magenta/Pink Sector */}
-            <CloudSprite position={[-10, 5, -5]} color="#ff0066" size={10} opacity={0.1} />
-            <CloudSprite position={[-15, -5, -8]} color="#ff66cc" size={10} opacity={0.1} />
-            <CloudSprite position={[-8, 10, -10]} color="#db00cc" size={15} opacity={0.1} />
-
-            {/* Lavender/Purple Sector (Was Cyan) */}
-            <CloudSprite position={[10, -5, -5]} color="#d810df" size={10} opacity={0.1} />
-            <CloudSprite position={[15, 2, -10]} color="#e056fd" size={12} opacity={0.1} />
-            <CloudSprite position={[5, -10, -8]} color="#9900ff" size={10} opacity={0.1} />
-
-            {/* Gold/Orange Warmth */}
-            <CloudSprite position={[0, 15, -15]} color="#ffaa00" size={10} opacity={0.1} />
-            <CloudSprite position={[-5, 8, -5]} color="#ffdd00" size={10} opacity={0.1} />
-
-            {/* Deep Cosmic Background Background */}
-            <CloudSprite position={[0, 0, -25]} color="#2a004d" size={10} opacity={0.1} />
-            <CloudSprite position={[20, 20, -30]} color="#4b0082" size={10} opacity={0.1} />
-            <CloudSprite position={[-20, -20, -30]} color="#E100FF" size={10} opacity={0.1} />
+        <group ref={groupRef}>
+            {clouds.map((cloud, index) => (
+                <AtmosphericGlow
+                    key={index}
+                    position={cloud.position}
+                    color={cloud.color}
+                    size={cloud.size}
+                    opacity={cloud.opacity}
+                />
+            ))}
         </group>
     );
 }

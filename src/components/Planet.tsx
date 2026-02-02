@@ -92,7 +92,7 @@ export default function Planet() {
     return (
         <group>
             {/* Background Stars - Dense Field */}
-            <Stars radius={300} depth={60} count={5000} factor={6} saturation={0.5} fade speed={1} />
+            <Stars radius={300} depth={60} count={3000} factor={6} saturation={0.5} fade speed={1} />
 
             <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
 

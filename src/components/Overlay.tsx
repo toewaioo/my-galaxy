@@ -46,6 +46,13 @@ export default function Overlay(props: {
             onClick={() => {
               setStarted(true);
               toggleSound(); // Start audio on click
+              // Attempt to enter fullscreen
+              const elem = document.documentElement;
+              if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => {
+                  console.log(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
+              }
             }}
           >
             <div className="text-center">
@@ -106,7 +113,7 @@ export default function Overlay(props: {
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
-              strokeLinejoin="round"
+              str.okeLinejoin="round"
             >
               <path d="M11 5L6 9H2v6h4l5 4V5z" />
               <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />

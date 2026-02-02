@@ -49,14 +49,16 @@ export default function Overlay(props: {
               // Attempt to enter fullscreen
               const elem = document.documentElement;
               if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(err => {
-                  console.log(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                elem.requestFullscreen().catch((err) => {
+                  console.log(
+                    `Error attempting to enable full-screen mode: ${err.message} (${err.name})`,
+                  );
                 });
               }
             }}
           >
             <div className="text-center">
-              <h1 className="text-4xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-love-pink to-soft-lavender font-light tracking-[0.2em] cursor-pointer hover:scale-105 transition-transform duration-700">
+              <h1 className="text-4xl md:text-6xl text-transparent bg-clip-text from-love-pink to-soft-lavender font-light tracking-[0.2em] cursor-pointer hover:scale-105 transition-transform duration-700">
                 ENTER GALAXY
               </h1>
               <p className="text-white/50 mt-4 text-sm tracking-widest uppercase">
@@ -113,7 +115,7 @@ export default function Overlay(props: {
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
-              str.okeLinejoin="round"
+              strokeLinejoin="round"
             >
               <path d="M11 5L6 9H2v6h4l5 4V5z" />
               <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />

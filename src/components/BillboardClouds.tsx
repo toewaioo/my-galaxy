@@ -29,7 +29,7 @@ function AtmosphericGlow({ position, color, size, opacity }: { position: [number
 
     const brightColor = useMemo(() => {
         // Boost intensity for that neon "light" feel, but keep it soft
-        return new THREE.Color(color).multiplyScalar(1);
+        return new THREE.Color(color).multiplyScalar(3);
     }, [color]);
 
     return (
@@ -55,21 +55,21 @@ const clouds = [
     // SIZES are huge (40-60) to prevent looking like "circles"
 
     // Passionate Pink Glow
-    { position: [-10, 5, -5] as [number, number, number], color: "#FF1493", size: 45, opacity: 0.11 },
-    { position: [-15, -5, -8] as [number, number, number], color: "#FF69B4", size: 50, opacity: 0.1 },
+    { position: [-10, 5, -5] as [number, number, number], color: "#FF1493", size: 20, opacity: 0.11 },
+    { position: [-15, -5, -8] as [number, number, number], color: "#FF69B4", size: 20, opacity: 0.1 },
 
     // Dreamy Purple Haze
-    { position: [10, -5, -5] as [number, number, number], color: "#DA70D6", size: 55, opacity: 0.11 },
-    { position: [15, 2, -10] as [number, number, number], color: "#EE82EE", size: 60, opacity: 0.1 },
+    { position: [10, -5, -5] as [number, number, number], color: "#DA70D6", size: 25, opacity: 0.11 },
+    { position: [15, 2, -10] as [number, number, number], color: "#EE82EE", size: 20, opacity: 0.1 },
 
     // Warm Ambient Light
-    { position: [0, 10, -10] as [number, number, number], color: "#FFD700", size: 60, opacity: 0.11 },
+    { position: [0, 10, -10] as [number, number, number], color: "#FFD700", size: 20, opacity: 0.11 },
 
     // Deep Background Atmosphere (The Void)
-    { position: [0, 0, -20] as [number, number, number], color: "#4B0082", size: 80, opacity: 0.11 },
+    { position: [0, 0, -20] as [number, number, number], color: "#4B0082", size: 20, opacity: 0.11 },
 
     // Green Hints
-    { position: [12, 8, -12] as [number, number, number], color: "#98FB98", size: 60, opacity: 0.1 },
+    { position: [12, 8, -12] as [number, number, number], color: "#98FB98", size: 20, opacity: 0.1 },
 ];
 
 export default function BillboardClouds() {
